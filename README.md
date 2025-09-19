@@ -6,7 +6,7 @@ This repo represents what I learnt during the workshop, my notes and further sel
 
 ## Credit
 
-The workshop was led by Steven Morgan and the material discussed in the workshop can be found [here](https://melbintgen.github.io/Intro-to-scRNA-seq-analysis/scRNAseq_workshop.html), authors being Xiaochen Zhang, Ruiqing Zhu, Jiadong Mao, Kim-Anh Lê Cao.
+The workshop was led by Steven Morgan and the material discussed in the workshop can be found [here](https://melbintgen.github.io/Intro-to-scRNA-seq-analysis/scRNAseq_workshop.html), authors being Xiaochen Zhang, Ruiqing Zhu, Jiadong Mao, Kim-Anh Lê Cao and under the Apache License 2.0.
 
 ## License
 
