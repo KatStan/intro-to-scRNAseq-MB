@@ -9,3 +9,26 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Seurat
+
+Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).
+
+The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form. 
+
+```{r seurat_setup, eval=FALSE, include=FALSE}
+install.packages('Seurat')
+
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+
+remotes::install_github("satijalab/seurat-data", quiet = TRUE)
+```
+
+```{r load_libraries, include=FALSE}
+
+library(Seurat)
+options(Seurat.object.assay.version = "v5")
+library(SeuratData)
+
+```
