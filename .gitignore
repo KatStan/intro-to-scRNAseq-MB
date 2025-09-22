@@ -50,3 +50,6 @@ rsconnect/
 
 # additional materials for personal learning
 materials/
+
+# .html from the R markdown
+*.html
