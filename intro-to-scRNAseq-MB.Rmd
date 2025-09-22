@@ -2,20 +2,27 @@
 title: "Introduction to scRNA-seq analysis"
 author: "Katarina Stankovic"
 date: "2025-09"
-output: html_document
+output: 
+  html_document:
+    theme: cosmo
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+htmltools::HTML("
+<style>
+.indented {padding-left: 100px;}
+</style>
+")
 ```
 
 ## Seurat
 
 Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).
 
-The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form. 
+The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form.
 
-```{r seurat_setup, eval=FALSE, include=FALSE}
+```{r seurat_setup, eval=FALSE, include=FALSE, cache=TRUE}
 install.packages('Seurat')
 
 if (!requireNamespace("remotes", quietly = TRUE)) {
@@ -25,10 +32,143 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 remotes::install_github("satijalab/seurat-data", quiet = TRUE)
 ```
 
-```{r load_libraries, include=FALSE}
+```{r load_libraries, include=FALSE, cache=TRUE}
 
 library(Seurat)
 options(Seurat.object.assay.version = "v5")
 library(SeuratData)
 
 ```
+
+## Single-cell Analysis Overview
+
+### Overview:
+
+#### 1. Acquiring single cells and sequencing them <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#acq">More</button>
+
+::: {#acq .collapse}
+Acquiring single cells entails dissociating some individual cells from tissue:
+
+-   droplet-based: higher throughput (aka higher \# of individual cells you are sequencing), lower depth -\> good for main transcriptional patterns
+-   plate-based: higher depth for fewer cells, useful for lowly expressed transcripts
+:::
+
+#### 2. Raw data processing: Processing reads to counts per cell (count matrix) <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#raw">More</button>
+
+::: {#raw .collapse}
+Acquired sequencing data, output of raw data processing: genes x single cells count matrix in scRNA-seq:
+
+-   high-dimensional data, a lot of rows (whole transcriptome) and columns (lots of cells)
+-   very sparse, signal spread out, characteristic of droplet-based approach
+:::
+
+#### 3. Data pre-processing:
+
+```{=html}
+<style>
+.indented {padding-left: 20px;}
+</style>
+```
+
+##### 3.1. Quality Control (filtering out poor quality cells) <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#qc">More</button> {.indented}
+
+::: {#qc .collapse}
+-   As a result of the wet-lab technique, our droplet could be:
+    -   singlet (what we want): one cell in a droplet
+    -   empty: no cell in a droplet; since ambient RNA exists, it won't be an empty column
+    -   doublet: has one (or more) cells in a droplet -\> `DoubletFinder`
+    -   dead cell: can recognise by higher % of reads mapped to genes are mapped to the mitochondrial genome; because we have so many cells, we can remove all cells with a more stringent cutoff % e.g. \>5% of all genes mapping to that mitochondrial genome (look at the data to pick a cutoff, vioolin plots quite useful)
+-   Cell Ranger has proprietary software package (that you will have run as their customer), and they provide you with the count matrix and do the pre-processing part for you (up until, and including, QC)
+:::
+
+##### 3.2. Normalization <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#norm">More</button> {.indented}
+
+::: {#norm .collapse}
+-   Some cells will be sequenced to a bigger depth than other cells, (cell of type A got 1000 reads, cell of type B got 500 reads e.g.) -\> apply size factor for each cell to make it comparable
+:::
+
+##### 3.3. Feature Selection <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#feat">More</button> {.indented}
+
+::: {#feat .collapse}
+-   genes with low or no expression - exclude, reasoning: won't be crucial in cell type identity
+-   housekeeping genes - exclude, they are expressed at a stable level in every cell type all the time, doesn't help in determining cell types -\> you care about 3000\~5000 most variable usually
+:::
+
+##### 3.4. Dimension Reduction <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#dim">More</button> {.indented}
+
+::: {#dim .collapse}
+-   PCA: 30 to 50 PCs instead of 20k you had before for genes; preserves major sources of variability, as it is expected some genes will have correlated behaviours; downstream steps will take the PCs as input -\> not best way for visualisation, but is a sanity check that something isn't horribly messed up
+:::
+
+##### 3.5. Data Correction <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#corr">More</button> {.indented}
+
+::: {#corr .collapse}
+-   batch effect correction: these cells can be from e.g. different people, or sequenced on different days, need to differentiate between batch effect and biological effect
+-   tools: Matching mutual nearest neighbours (MNN), Canonical correlation analysis (CCA), Harmony
+:::
+
+##### + Visualisations along the way <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#vis">More</button> {.indented}
+
+::: {#vis .collapse}
+-   UMAP (non-linear dimensional reduction, non-deterministic) gives local preservation, meaning similar cells are grouped cells together (each dot is a cell), but not good at global structure, meaning just because cluster1 is further away from cluster3 than cluster2 is, doesn't mean cluster2 and cluster 3 are more similar in cell type than cluster1 and cluster3; not good for downstream analysis, just good for visualisation; PCA was input, otherwise the UMAP is really slow
+:::
+
+#### 4. Downstream analysis:
+
+<!-- -->
+
+##### 4-a) Clustering <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#clust">More</button> {.indented}
+
+::: {#clust .collapse}
+-   idea: similar cells (aka cells of same cell type) will cluster together
+-   Two most popular clustering algorithms, both have a resolution parameter, the higher, more clusters:
+    -   Leiden clustering (faster and usually leads to better clusters)
+    -   Louvain clustering (Seurat default)
+:::
+
+##### 4-b) Cell type annotation <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#anno">More</button> {.indented}
+
+::: {#anno .collapse}
+-   label the clusters based on different biological functions (aka seen through highly expressed genes)
+-   can be manual or automatic
+-   can be of a main or fine labelling (more specific biological calls e.g. CD4 CTL and CD4 Naive instead of CD4 T)
+-   Seurat does cluster resolution (higher acc), SingleR does cell per cell annonation, (usually lower acc)
+:::
+
+##### 4-c) Proportion test <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#prop">More</button> {.indented}
+
+::: {#prop .collapse}
+-   once you have cell types annotated, are there difference in the proportions of cell types in our control vs case
+:::
+
+##### 4-d) Differential expression <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#diff">More</button> {.indented}
+
+::: {#diff .collapse}
+-   determining which genes are differentially expressed when comparing e.g. two clusters, or a cluster with the rest of the clusters
+:::
+
+##### 4-e) Gene Ontology <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#go">More</button> {.indented}
+
+::: {#go .collapse}
+-   with a gene list of e.g. differentially expressed genes, whether they are related (and enriching) a pathway/process
+-   R package: clusterProfiler
+:::
+
+##### 4-f) Trajectory inference cell states <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#time">More</button> {.indented}
+
+::: {#time .collapse}
+-   inferring pseudo time: it looks like cell state A and cell state B are two cell states of the same cell, and they are going through time
+-   tool: Monocle
+:::
+
+##### 4-g) Cell-cell interaction <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#int">More</button> {.indented}
+
+::: {#int .collapse}
+-   to understand interactions between cell types
+-   tool: CellPhoneDB
+:::
+
+<!-- -->
+#### 
+
+Seurat v5: full process automatic data pre-processing: QC - Normalisation - feature selection - dimension red - data correction (batch effect removal with CCA), with some downstream analysis
