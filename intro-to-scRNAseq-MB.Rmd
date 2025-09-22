@@ -23,13 +23,16 @@ Seurat is an R package for analysing single-cell RNA-seq data. More info about t
 The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form.
 
 ```{r seurat_setup, eval=FALSE, include=FALSE, cache=TRUE}
-install.packages('Seurat')
+if (!requireNamespace("Seurat", quietly = TRUE)) {
+  install.packages('Seurat')
+}
 
 if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
-
-remotes::install_github("satijalab/seurat-data", quiet = TRUE)
+if (!requireNamespace("SeuratData", quietly = TRUE)) {
+  remotes::install_github("satijalab/seurat-data", quiet = TRUE)
+}
 ```
 
 ```{r load_libraries, include=FALSE, cache=TRUE}
@@ -173,3 +176,28 @@ Acquired sequencing data, output of raw data processing: genes x single cells co
 #### 
 
 Seurat v5: full process automatic data pre-processing: QC - Normalisation - feature selection - dimension red - data correction (batch effect removal with CCA), with some downstream analysis
+
+## Case study
+
+This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that passed quality control are included in the ```pbmcsca``` dataset.
+
+```{r acquire_data, cache=TRUE, message=FALSE, warning=FALSE}
+
+InstallData("pbmcsca")
+data("pbmcsca")
+# needs to update Seurat object to new structure (v5) for storing data/calculations
+pbmcsca <- UpdateSeuratObject(pbmcsca) 
+```
+
+Let's view a summary of the data:
+```{r data_acquisition_overview}
+table(pbmcsca$Method)
+```
+We see the number of cells sequenced per sequencing platform.  
+We are going to focus on single-cell sequencing of peripheral blood mononuclear cells (PBMC) from two patients, sequenced on two different platforms: 10x Chromium (v2) and 10x Chromium (v3)
+
+```{r data_subset}
+pbmc_10x_v2 <- pbmcsca[,pbmcsca$Method == "10x Chromium (v2)"]
+pbmc_10x_v3 <- pbmcsca[,pbmcsca$Method == "10x Chromium (v3)"]
+pbmc_combo <- pbmcsca[,pbmcsca$Method %in% c("10x Chromium (v2)", "10x Chromium (v3)")]
+```
