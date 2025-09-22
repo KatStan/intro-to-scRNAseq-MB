@@ -5,6 +5,7 @@ date: "2025-09"
 output: 
   html_document:
     theme: cosmo
+  
 ---
 
 ```{r setup, include=FALSE}
@@ -18,8 +19,7 @@ htmltools::HTML("
 
 ## Seurat
 
-Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).
-
+Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).  
 The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form.
 
 ```{r seurat_setup, eval=FALSE, include=FALSE, cache=TRUE}
@@ -169,6 +169,7 @@ Acquired sequencing data, output of raw data processing: genes x single cells co
 :::
 
 <!-- -->
+<!-- empty heading to end scope of "indented"  -->
 #### 
 
 Seurat v5: full process automatic data pre-processing: QC - Normalisation - feature selection - dimension red - data correction (batch effect removal with CCA), with some downstream analysis
