@@ -182,15 +182,14 @@ Seurat v5: full process automatic data pre-processing: QC - Normalisation - feat
 This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that passed quality control are included in the ```pbmcsca``` dataset.
 
 ```{r acquire_data, cache=TRUE, message=FALSE, warning=FALSE}
-
 InstallData("pbmcsca")
 data("pbmcsca")
 # needs to update Seurat object to new structure (v5) for storing data/calculations
-pbmcsca <- UpdateSeuratObject(pbmcsca) 
+pbmcsca <- UpdateSeuratObject(pbmcsca)
 ```
 
 Let's view a summary of the data:
-```{r data_acquisition_overview}
+```{r data_acquisition_overview, message=FALSE}
 table(pbmcsca$Method)
 ```
 We see the number of cells sequenced per sequencing platform.  
@@ -200,4 +199,23 @@ We are going to focus on single-cell sequencing of peripheral blood mononuclear 
 pbmc_10x_v2 <- pbmcsca[,pbmcsca$Method == "10x Chromium (v2)"]
 pbmc_10x_v3 <- pbmcsca[,pbmcsca$Method == "10x Chromium (v3)"]
 pbmc_combo <- pbmcsca[,pbmcsca$Method %in% c("10x Chromium (v2)", "10x Chromium (v3)")]
+```
+
+A Seurat object is a representation of single-cell expression data for R. Each Seurat object consists of one or more Assay objects aka representations of expression data (eg. RNA-seq, ATAC-seq, etc).
+Each assay can have multiple layers. Each layer would be a transformed version of the raw gene expression data. These assays can be reduced from their high-dimensional state to a lower-dimension state and stored as ```DimReduc``` objects.
+
+Seurat objects also store additional metadata. The object is designed to be as self-contained as possible and as more information is put within the object, the larger it becomes in size.
+
+<!-- ToDo: Seurat deep-dive based on https://github.com/satijalab/seurat/wiki as collapsible -->
+
+```{r exploring_seurat_raw_cnt_matrix}
+
+pbmc_10x_v3@assays$RNA #raw count matrix (genes x cells) of scRNA-seq 
+```
+```{r exploring_seurat_cell_info}
+head(pbmc_10x_v3@meta.data) # info and labels of each cell
+```
+```{r exploring_seurat_dim_red}
+pbmc_10x_v3@reductions #dim red info is here; empty, because we haven't done any dim reductions on the assay, so there is nothing to store!
+
 ```
