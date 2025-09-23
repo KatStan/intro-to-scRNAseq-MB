@@ -206,8 +206,6 @@ Each assay can have multiple layers. Each layer would be a transformed version o
 
 Seurat objects also store additional metadata. The object is designed to be as self-contained as possible and as more information is put within the object, the larger it becomes in size.
 
-<!-- ToDo: Seurat deep-dive based on https://github.com/satijalab/seurat/wiki as collapsible -->
-
 ```{r exploring_seurat_raw_cnt_matrix}
 
 pbmc_10x_v3@assays$RNA #raw count matrix (genes x cells) of scRNA-seq 
