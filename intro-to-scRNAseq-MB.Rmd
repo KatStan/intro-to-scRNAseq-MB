@@ -179,6 +179,8 @@ Seurat v5: full process automatic data pre-processing: QC - Normalisation - feat
 
 ## Case study
 
+### Acquiring the data
+
 This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that passed quality control are included in the ```pbmcsca``` dataset.
 
 ```{r acquire_data, cache=TRUE, message=FALSE, warning=FALSE}
@@ -217,3 +219,7 @@ head(pbmc_10x_v3@meta.data) # info and labels of each cell
 pbmc_10x_v3@reductions #dim red info is here; empty, because we haven't done any dim reductions on the assay, so there is nothing to store!
 
 ```
+
+### Analysis of a single scRNA-seq experiment
+
+For now, let's focus on just the patient sample sequenced on 10x Chromium (v3).
