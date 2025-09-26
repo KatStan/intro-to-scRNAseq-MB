@@ -236,7 +236,7 @@ We have 3222 cells and 33694 genes that have passed quality control.
 
 #### Normalisation
 
-By default, Seurat implements a global-scaling normalization method called `LogNormalize`. Global-scaling means it aims to make your samples (for us, cells) comparable. `LogNormalize` normalises the gene expression measurements **for each cell** by the total number of counts across all genes **per cell**, and multiplies this by a scaling factor (10,000 by default), then log transforms the result using `log1p` (i.e loge(value+1)):
+By default, Seurat implements a global-scaling normalization method called `LogNormalize`. Global-scaling means it aims to make your samples (for us, cells) comparable. `LogNormalize` normalises the gene expression measurements **for each cell** by the total number of counts across all genes **per cell**, and multiplies this by a scaling factor (10,000 by default), then log transforms the result using `log1p` (i.e $log_e(value+1)$):
 
 ```{r log_normalise, warning=FALSE}
 pbmc_10x_v3 <- Seurat::NormalizeData(object=pbmc_10x_v3, normalization.method = "LogNormalize", 
