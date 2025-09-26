@@ -5,7 +5,7 @@ date: "2025-09"
 output: 
   html_document:
     theme: cosmo
-  
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +19,7 @@ htmltools::HTML("
 
 ## Seurat
 
-Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).  
+Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).\
 The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form.
 
 ```{r seurat_setup, eval=FALSE, include=FALSE, cache=TRUE}
@@ -172,7 +172,9 @@ Acquired sequencing data, output of raw data processing: genes x single cells co
 :::
 
 <!-- -->
+
 <!-- empty heading to end scope of "indented"  -->
+
 #### 
 
 Seurat v5: full process automatic data pre-processing: QC - Normalisation - feature selection - dimension red - data correction (batch effect removal with CCA), with some downstream analysis
@@ -181,7 +183,7 @@ Seurat v5: full process automatic data pre-processing: QC - Normalisation - feat
 
 ### Acquiring the data
 
-This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that passed quality control are included in the ```pbmcsca``` dataset.
+This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that **passed quality control** are included in the `pbmcsca` dataset.
 
 ```{r acquire_data, cache=TRUE, message=FALSE, warning=FALSE}
 InstallData("pbmcsca")
@@ -191,10 +193,12 @@ pbmcsca <- UpdateSeuratObject(pbmcsca)
 ```
 
 Let's view a summary of the data:
+
 ```{r data_acquisition_overview, message=FALSE}
 table(pbmcsca$Method)
 ```
-We see the number of cells sequenced per sequencing platform.  
+
+We see the number of cells sequenced per sequencing platform.\
 We are going to focus on single-cell sequencing of peripheral blood mononuclear cells (PBMC) from two patients, sequenced on two different platforms: 10x Chromium (v2) and 10x Chromium (v3)
 
 ```{r data_subset}
@@ -203,8 +207,7 @@ pbmc_10x_v3 <- pbmcsca[,pbmcsca$Method == "10x Chromium (v3)"]
 pbmc_combo <- pbmcsca[,pbmcsca$Method %in% c("10x Chromium (v2)", "10x Chromium (v3)")]
 ```
 
-A Seurat object is a representation of single-cell expression data for R. Each Seurat object consists of one or more Assay objects aka representations of expression data (eg. RNA-seq, ATAC-seq, etc).
-Each assay can have multiple layers. Each layer would be a transformed version of the raw gene expression data. These assays can be reduced from their high-dimensional state to a lower-dimension state and stored as ```DimReduc``` objects.
+A Seurat object is a representation of single-cell expression data for R. Each Seurat object consists of one or more Assay objects aka representations of expression data (eg. RNA-seq, ATAC-seq, etc). Each assay can have multiple layers. Each layer would be a transformed version of the raw gene expression data. These assays can be reduced from their high-dimensional state to a lower-dimension state and stored as `DimReduc` objects.
 
 Seurat objects also store additional metadata. The object is designed to be as self-contained as possible and as more information is put within the object, the larger it becomes in size.
 
@@ -212,9 +215,11 @@ Seurat objects also store additional metadata. The object is designed to be as s
 
 pbmc_10x_v3@assays$RNA #raw count matrix (genes x cells) of scRNA-seq 
 ```
+
 ```{r exploring_seurat_cell_info}
 head(pbmc_10x_v3@meta.data) # info and labels of each cell
 ```
+
 ```{r exploring_seurat_dim_red}
 pbmc_10x_v3@reductions #dim red info is here; empty, because we haven't done any dim reductions on the assay, so there is nothing to store!
 
@@ -223,3 +228,30 @@ pbmc_10x_v3@reductions #dim red info is here; empty, because we haven't done any
 ### Analysis of a single scRNA-seq experiment
 
 For now, let's focus on just the patient sample sequenced on 10x Chromium (v3).
+
+```{r v3_dimensions}
+dim(pbmc_10x_v3)
+```
+We have 3222 cells and 33694 genes that have passed quality control.
+
+#### Normalisation
+
+By default, Seurat implements a global-scaling normalization method called `LogNormalize`. Global-scaling means it aims to make your samples (for us, cells) comparable. `LogNormalize` normalises the gene expression measurements **for each cell** by the total number of counts across all genes **per cell**, and multiplies this by a scaling factor (10,000 by default), then log transforms the result using `log1p` (i.e loge(value+1)):
+
+```{r log_normalise, warning=FALSE}
+pbmc_10x_v3 <- Seurat::NormalizeData(object=pbmc_10x_v3, normalization.method = "LogNormalize", 
+    scale.factor = 10000)
+
+```
+How we could check we understand what `LogNormalize` does: 
+
+
+```{r check_lognormalize}
+
+counts_of_first_cell <- pbmc_10x_v3@assays$RNA@counts[,1]
+total_num_counts_first_cell <- sum(counts_of_first_cell)
+base::all.equal(pbmc_10x_v3@assays$RNA@data[,1],
+                log1p(counts_of_first_cell*10000/total_num_counts_first_cell)) # testing ‘near equality’ for numeric; Differences smaller than tolerance are not reported. The default value is close to 1.5e-8.
+
+```
+
