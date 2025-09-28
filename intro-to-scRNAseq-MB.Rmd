@@ -232,6 +232,7 @@ For now, let's focus on just the patient sample sequenced on 10x Chromium (v3).
 ```{r v3_dimensions}
 dim(pbmc_10x_v3)
 ```
+
 We have 3222 cells and 33694 genes that have passed quality control.
 
 #### Normalisation
@@ -243,8 +244,8 @@ pbmc_10x_v3 <- Seurat::NormalizeData(object=pbmc_10x_v3, normalization.method = 
     scale.factor = 10000)
 
 ```
-How we could check we understand what `LogNormalize` does: 
 
+How we could check we understand what `LogNormalize` does:
 
 ```{r check_lognormalize}
 
@@ -254,28 +255,32 @@ base::all.equal(pbmc_10x_v3@assays$RNA@data[,1],
                 log1p(counts_of_first_cell*10000/total_num_counts_first_cell)) # testing ‘near equality’ for numeric; Differences smaller than tolerance are not reported. The default value is close to 1.5e-8.
 
 ```
+
 #### Feature Selection
 
-We use the `FindVariableFeatures()` Seurat function to select highly variable genes which have most of the useful information needed for downstream analysis. For now, there is nothing there:  
+We use the `FindVariableFeatures()` Seurat function to select highly variable genes which have most of the useful information needed for downstream analysis. For now, there is nothing there:
 
 ```{r }
 pbmc_10x_v3@assays$RNA@var.features
 ```
+
 Here we select the top 3,000 most variable genes to save some computing time. In practice, you can select more genes (5,000 or more) to preserve more information from the scRNA-seq experiment:
 
 ```{r HVGs}
 pbmc_10x_v3 <- Seurat::FindVariableFeatures(pbmc_10x_v3, selection.method = "vst", nfeatures = 3000)
 head(pbmc_10x_v3@assays$RNA@var.features)
 ```
+
 After feature selection, the downstream Seurat functions will only use these HVGs, unless otherwise specified.
 
-<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#vst">More on vst</button> 
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#vst">
+
+More on vst
+
+</button>
 
 ::: {#vst .collapse}
-Variance stabilising transformation, or vst, is a method for fitting a line to the relationship of log(variance) and log(mean) using local polynomial regression (loess), then standardising the feature (aka gene expression) values using the observed mean and expected variance (given by the fitted line). Feature variance is then calculated on the standardised values after clipping to a maximum (see clip.max parameter). - as per Seurat documentation.   
-We are searching for the highest variable genes. A way to do this would be to find the variance of each gene (using gene expr values across all cells), sort from highest to lowest and have a cutoff of the top 3000 genes. However, genes that have a higher expression will have a higher variance (and lower expression lower variance), meaning some genes will be in the cutoff even though they are not particulary variable, instead just due to how large of a number an observation (hence variance) can get to. So to make genes more comparable across variances with the diverse range of means, you want to standardise the expression values.   
-When standardising the expression values, normally you would centre by the mean, and scale by the variance of each gene. But the variance could be noisy due to low number of samples -> a sc count matrix is sparse!
-This is where the variance stabilising method comes in. So the idea is to "borrow" from other genes of a similar mean value by fitting a (loess) line to a scatter plot of log_mean x log_var pairs, and use the predicted (expected) value of log_var for each log_mean (aka use the stabilised variance) in standardising every gene expression value: $$\frac{gene\_expr\_value - mean}{\sqrt{predicted\_var}},$$ where $predicted\_var = e^{predicted\_log\_var}$. This stabilised variance talks about the expected variance given a certain mean, so by standardising with this stabilised variance, we will achieve in removing the mean-var dependency.
-
+Variance stabilising transformation, or vst, is a method for fitting a line to the relationship of log(variance) and log(mean) using local polynomial regression (loess), then standardising the feature (aka gene expression) values using the observed mean and expected variance (given by the fitted line). Feature variance is then calculated on the standardised values after clipping to a maximum (see clip.max parameter). - as per Seurat documentation.\
+We are searching for the highest variable genes. A way to do this would be to find the variance of each gene (using gene expr values across all cells), sort from highest to lowest and have a cutoff of the top 3000 genes. However, genes that have a higher expression will have a higher variance (and lower expression lower variance), meaning some genes will be in the cutoff even though they are not particulary variable, instead just due to how large of a number an observation (hence variance) can get to. So to make genes more comparable across variances with the diverse range of means, you want to standardise the expression values.\
+When standardising the expression values, normally you would centre by the mean, and scale by the variance of each gene. But the variance could be noisy due to low number of samples -\> a sc count matrix is sparse! This is where the variance stabilising method comes in. So the idea is to "borrow" from other genes of a similar mean value by fitting a (loess) line to a scatter plot of log_mean x log_var pairs, and use the predicted (expected) value of log_var for each log_mean (aka use the stabilised variance) in standardising every gene expression value: $$\frac{gene\_expr\_value - mean}{\sqrt{predicted\_var}},$$ where $predicted\_var = e^{predicted\_log\_var}$. This stabilised variance talks about the expected variance given a certain mean, so by standardising with this stabilised variance, we will achieve in removing the mean-var dependency. For implementation details, see [here](https://github.com/satijalab/seurat/blob/868646df677f3680177fff6d2b9869ebc40499b9/R/preprocessing.R#L1333-L1359).
 :::
-
