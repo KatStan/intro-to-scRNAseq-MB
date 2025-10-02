@@ -2,7 +2,7 @@
 
 The "Intro to scRNA-seq" workshop is one of the many workshops held by Melbourne Bioinformatics.
 
-This repo represents what I learnt during the workshop, my notes and further self-driven exploration.
+This repo represents what I learnt during the workshop, my notes and further self-driven exploration. The output of the .rmd can be accessed [here](https://katstan.github.io/intro-to-scRNAseq-MB/).
 
 ## Credit
 
