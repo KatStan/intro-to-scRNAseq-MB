@@ -1,0 +1,42 @@
+name: Render-rmd-deploy-html-to-Pages
+
+on:
+  push:
+    branches:
+      - main
+          
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    
+permissions:
+  contents: write
+    
+jobs:
+  render-rmd:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install system dependencies
+      run: sudo apt-get install -y libglpk40
+      
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: renv
+    
+    - name: Set up pandoc 
+      uses: r-lib/actions/setup-pandoc@v2
+      
+    - name: Set up renv
+      uses: r-lib/actions/setup-renv@v2
+ 
+    - name: Build rmarkdown
+      run: Rscript -e 'rmarkdown::render("intro-to-scRNAseq-MB.Rmd", output_file="index.html", output_dir = "output")'
+    - name: Deploy 
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: gh-pages
+        folder: output
