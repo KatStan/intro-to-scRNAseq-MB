@@ -792,8 +792,8 @@ base::all.equal(pbmc_10x_v3@assays$RNA@data[,1],
                 log1p(counts_of_first_cell*10000/total_num_counts_first_cell)) # testing ‘near equality’ for numeric; Differences smaller than tolerance are not reported. The default value is close to 1.5e-8.</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 </div>
-<div id="feature-selection" class="section level4">
-<h4>Feature Selection</h4>
+<div id="feature-selection-and-scaling" class="section level4">
+<h4>Feature Selection and Scaling</h4>
 <p>We use the <code>FindVariableFeatures()</code> Seurat function to
 select highly variable genes which have most of the useful information
 needed for downstream analysis. For now, there is nothing there:</p>
@@ -840,8 +840,18 @@ mean}{\sqrt{predicted\_var}},\]</span> where <span class="math inline">\(predict
 This stabilised variance talks about the expected variance given a
 certain mean, so by standardising with this stabilised variance, we will
 achieve in removing the mean-var dependency. For implementation details,
-see <a href="https://github.com/satijalab/seurat/blob/868646df677f3680177fff6d2b9869ebc40499b9/R/preprocessing.R#L1333-L1359">here</a>.</p>
+see <a href="https://github.com/satijalab/seurat/blob/868646df677f3680177fff6d2b9869ebc40499b9/R/preprocessing.R#L1333-L1359">here</a>,
+and note when the <code>counts</code> or <code>data</code> slot is used
+for feature value standardisation.</p>
 </div>
+<p>Many downstream statistical analyses requires the data matrix to be
+centred and scaled. We use the Seurat function <code>ScaleData()</code>
+for this:</p>
+<pre class="r"><code>pbmc_10x_v3 &lt;- ScaleData(pbmc_10x_v3)</code></pre>
+<pre><code>## Centering and scaling data matrix</code></pre>
+<p>The scaled z-scored residuals of these models are stored in the
+<code>scale.data</code> slot, and are used for downstream dimension
+reduction and clustering tasks.</p>
 </div>
 </div>
 </div>
