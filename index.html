@@ -853,6 +853,73 @@ for this:</p>
 <code>scale.data</code> slot, and are used for downstream dimension
 reduction and clustering tasks.</p>
 </div>
+<div id="principal-component-analysis-pca" class="section level4">
+<h4>Principal component analysis (PCA)</h4>
+<p>We perform PCA on the <strong>scaled data</strong>. By default, HVGs
+in <code>pbmc_10x_v3@var.genes</code> are used as input, but they can be
+defined by specifying the argument <code>pc.genes</code>.</p>
+<p>We run PCA on top 3,000 most variable genes, and the total number of
+PCs to compute and store is 50 by default:</p>
+<pre class="r"><code>pbmc_10x_v3 &lt;- RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))</code></pre>
+<pre><code>## PC_ 1 
+## Positive:  LYZ, FCN1, CLEC7A, CPVL, SERPINA1, SPI1, S100A9, AIF1, NAMPT, CSTA 
+##     CTSS, MAFB, MPEG1, NCF2, FGL2, VCAN, S100A8, TYMP, CST3, LST1 
+##     CYBB, CFD, FCER1G, TGFBI, SLC11A1, GRN, CD14, SLC7A7, PSAP, RNF130 
+## Negative:  IL32, CCL5, TRBC2, TRAC, CST7, CD69, RORA, CTSW, CD247, ITM2A 
+##     TRBC1, C12orf75, IL7R, CD8A, GZMA, NKG7, CD7, LDHB, GZMH, CD6 
+##     CD8B, PRF1, BCL11B, LYAR, FGFBP2, HOPX, LTB, TCF7, KLRD1, ZFP36L2 
+## PC_ 2 
+## Positive:  NRGN, PF4, SDPR, HIST1H2AC, MAP3K7CL, GNG11, PPBP, GPX1, TUBB1, SPARC 
+##     CLU, PGRMC1, RGS18, FTH1, MARCH2, TREML1, HIST1H3H, ACRBP, AP003068.23, NCOA4 
+##     PRKAR2B, CMTM5, CD9, CA2, TAGLN2, TSC22D1, CTTN, HIST1H2BJ, MTURN, TMSB4X 
+## Negative:  EEF1A1, TMSB10, RPS2, RPS12, RPS18, RPLP1, RPS8, IL32, S100A4, RPLP0 
+##     PFN1, NKG7, CYBA, ARL4C, HSPA8, CST7, HSP90AA1, ZFP36L2, S100A6, ANXA1 
+##     CTSW, CORO1A, LDHA, CD247, GZMA, CALR, YBX1, S100A10, CFL1, ARPC3 
+## PC_ 3 
+## Positive:  CCL5, TMSB4X, SRGN, NKG7, ACTB, CST7, S100A4, CTSW, ANXA1, GZMH 
+##     FGFBP2, PRF1, GZMA, IL32, GZMB, C12orf75, KLRD1, GNLY, GAPDH, CD247 
+##     MYO1F, NRGN, ID2, ACTG1, CD7, PF4, SDPR, PPBP, HIST1H2AC, CD8A 
+## Negative:  CD79A, HLA-DQA1, MS4A1, BANK1, IGHM, LINC00926, IGHD, TNFRSF13C, HLA-DQB1, CD74 
+##     IGKC, HLA-DRA, BLK, CD83, ADAM28, CD22, HLA-DRB1, CD37, NFKBID, CD79B 
+##     P2RX5, VPREB3, IGLC2, JUND, FCER2, TCOF1, GNG7, COBLL1, RALGPS2, CD19 
+## PC_ 4 
+## Positive:  IL7R, S100A12, VCAN, S100A8, SLC2A3, CD14, CSF3R, S100A9, MS4A6A, CD93 
+##     IER3, FOS, RCAN3, ZFP36L2, EGR1, RP11-1143G9.4, RGCC, MGST1, LEPROTL1, CLEC4E 
+##     SOCS3, VIM, THBS1, SELL, CXCL8, LTB, SGK1, TNFAIP3, MAL, IRF2BP2 
+## Negative:  FCGR3A, CDKN1C, HES4, CSF1R, CKB, RHOC, ZNF703, MTSS1, TCF7L2, SIGLEC10 
+##     MS4A7, FAM110A, HLA-DPA1, IFITM2, CTSL, PLD4, BATF3, SLC2A6, IFITM3, ABI3 
+##     GZMB, NKG7, HLA-DPB1, FGFBP2, CTD-2006K23.1, CD79B, BID, LRRC25, GZMH, CTSC 
+## PC_ 5 
+## Positive:  GZMB, FGFBP2, GZMH, PRF1, CST7, NKG7, GNLY, KLRD1, GZMA, CTSW 
+##     CCL5, SPON2, ADGRG1, PRSS23, KLRF1, CCL4, ZEB2, CLIC3, S1PR5, ITGAM 
+##     HOPX, CEP78, CYBA, TRDC, C1orf21, MATK, TTC38, C12orf75, HLA-DRB1, HLA-DPB1 
+## Negative:  IL7R, LTB, LEPROTL1, PAG1, MAL, CDKN1C, RCAN3, LEF1, TCF7, NOSIP 
+##     CAMK4, LDHB, TOB1, TRABD2A, HES4, CSF1R, CKB, JUNB, TMEM123, ZFP36L2 
+##     NELL2, RNASET2, CD28, BCL11B, TNFRSF25, CD27, CTSL, CD40LG, ZNF703, AQP3</code></pre>
+<p>The PCA result is stored in <code>pbmc_10x_v3@reduction</code>. The
+output information prints us 30 (by default) genes are positively, or
+negatively correlated with the top 5 (by default) principal
+components.</p>
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">
+<p>More on PCA non-determinism</p>
+</button>
+<div id="pca" class="collapse">
+<p>The default parameters instill for PCA to be approximated by using
+truncated singular value decomposition and fixed with a random seed
+preset to 42. Under the hood, it is using the <code>irlba</code> package
+for truncated singular value decomposition (SVD) that uses an iterative
+algorithm that starts with a <em>random</em> initial vector to
+approximate the largest singular vectors.</p>
+<p>approx to approximate PCA</p>
+</div>
+<p><strong>Important note:</strong> Choosing parameters in PCA (genes
+and pcs) How many genes to choose for PCA and how many PCs to use for
+downstream analysis is a complex and important issue that is out of the
+scope of today’s workshop.</p>
+<p>But we highly recommend you to read this document before analyzing
+your own scRNA-seq data, where the authors show how to use some
+visualization methods to guide your choice.</p>
+</div>
 </div>
 </div>
 
