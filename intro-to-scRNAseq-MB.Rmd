@@ -303,7 +303,7 @@ We run PCA on top 3,000 most variable genes, and the total number of PCs to comp
 pbmc_10x_v3 <- RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))
 ```
 
-The PCA result is stored in `pbmc_10x_v3@reduction`. The output information prints us 30 (by default) genes are positively, or negatively correlated with the top 5 (by default) principal components.
+The PCA result is stored in `pbmc_10x_v3@reduction`. The output information prints us 30 (by default) genes that are positively, or negatively correlated with the top 5 (by default) principal components.
 
 <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">
 
