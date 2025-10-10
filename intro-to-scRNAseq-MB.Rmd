@@ -314,8 +314,6 @@ More on PCA non-determinism
 ::: {#pca .collapse}
 The default parameters instill for PCA to be approximated by using truncated singular value decomposition and fixed with a random seed preset to 42. Under the hood, it is using the `irlba` package for truncated singular value decomposition (SVD) that uses an iterative algorithm that starts with a *random* initial vector to approximate the largest singular vectors.
 
-approx
- to approximate PCA
 :::
 
 
