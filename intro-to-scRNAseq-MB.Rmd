@@ -317,6 +317,6 @@ The default parameters instill for PCA to be approximated by using truncated sin
 :::
 
 
-**Important note:** Choosing parameters in PCA (genes and pcs) How many genes to choose for PCA and how many PCs to use for downstream analysis is a complex and important issue that is out of the scope of today’s workshop.
+**Important note:** How many genes to choose for PCA and how many PCs to use for downstream analysis is a complex and important issue that is out of the scope of today’s workshop.
 
 But we highly recommend you to read this document before analyzing your own scRNA-seq data, where the authors show how to use some visualization methods to guide your choice.
