@@ -808,7 +808,7 @@ head(pbmc_10x_v3@assays$RNA@var.features)</code></pre>
 <p>After feature selection, the downstream Seurat functions will only
 use these HVGs, unless otherwise specified.</p>
 <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#vst">
-<p>More on vst</p>
+More on vst
 </button>
 <div id="vst" class="collapse">
 <p>Variance stabilising transformation, or vst, is a method for fitting
@@ -847,7 +847,7 @@ for feature value standardisation.</p>
 <p>Many downstream statistical analyses requires the data matrix to be
 centred and scaled. We use the Seurat function <code>ScaleData()</code>
 for this:</p>
-<pre class="r"><code>pbmc_10x_v3 &lt;- ScaleData(pbmc_10x_v3)</code></pre>
+<pre class="r"><code>pbmc_10x_v3 &lt;- Seurat::ScaleData(pbmc_10x_v3)</code></pre>
 <pre><code>## Centering and scaling data matrix</code></pre>
 <p>The scaled z-scored residuals of these models are stored in the
 <code>scale.data</code> slot, and are used for downstream dimension
@@ -860,7 +860,7 @@ in <code>pbmc_10x_v3@var.genes</code> are used as input, but they can be
 defined by specifying the argument <code>pc.genes</code>.</p>
 <p>We run PCA on top 3,000 most variable genes, and the total number of
 PCs to compute and store is 50 by default:</p>
-<pre class="r"><code>pbmc_10x_v3 &lt;- RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))</code></pre>
+<pre class="r"><code>pbmc_10x_v3 &lt;- Seurat::RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))</code></pre>
 <pre><code>## PC_ 1 
 ## Positive:  LYZ, FCN1, CLEC7A, CPVL, SERPINA1, SPI1, S100A9, AIF1, NAMPT, CSTA 
 ##     CTSS, MAFB, MPEG1, NCF2, FGL2, VCAN, S100A8, TYMP, CST3, LST1 
@@ -901,7 +901,7 @@ output information prints us 30 (by default) genes that are positively,
 or negatively correlated with the top 5 (by default) principal
 components.</p>
 <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">
-<p>More on PCA non-determinism</p>
+More on PCA non-determinism
 </button>
 <div id="pca" class="collapse">
 <p>The default parameters instill for PCA to be approximated by using
