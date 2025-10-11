@@ -276,19 +276,18 @@ After feature selection, the downstream Seurat functions will only use these HVG
 <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#vst">
 
 More on vst
-
-</button>
+</button>  
 
 ::: {#vst .collapse}
 Variance stabilising transformation, or vst, is a method for fitting a line to the relationship of log(variance) and log(mean) using local polynomial regression (loess), then standardising the feature (aka gene expression) values using the observed mean and expected variance (given by the fitted line). Feature variance is then calculated on the standardised values after clipping to a maximum (see clip.max parameter). - as per Seurat documentation.\
 We are searching for the highest variable genes. A way to do this would be to find the variance of each gene (using gene expr values across all cells), sort from highest to lowest and have a cutoff of the top 3000 genes. However, genes that have a higher expression will have a higher variance (and lower expression lower variance), meaning some genes will be in the cutoff even though they are not particulary variable, instead just due to how large of a number an observation (hence variance) can get to. So to make genes more comparable across variances with the diverse range of means, you want to standardise the expression values.\
 When standardising the expression values, normally you would centre by the mean, and scale by the variance of each gene. But the variance could be noisy due to low number of samples -\> a sc count matrix is sparse! This is where the variance stabilising method comes in. So the idea is to "borrow" from other genes of a similar mean value by fitting a (loess) line to a scatter plot of log_mean x log_var pairs, and use the predicted (expected) value of log_var for each log_mean (aka use the stabilised variance) in standardising every gene expression value: $$\frac{gene\_expr\_value - mean}{\sqrt{predicted\_var}},$$ where $predicted\_var = e^{predicted\_log\_var}$. This stabilised variance talks about the expected variance given a certain mean, so by standardising with this stabilised variance, we will achieve in removing the mean-var dependency. For implementation details, see [here](https://github.com/satijalab/seurat/blob/868646df677f3680177fff6d2b9869ebc40499b9/R/preprocessing.R#L1333-L1359), and note when the `counts` or `data` slot is used for feature value standardisation.
-:::
+:::  
 
 
 Many downstream statistical analyses requires the data matrix to be centred and scaled. We use the Seurat function `ScaleData()` for this:  
 ```{r scaling}
-pbmc_10x_v3 <- ScaleData(pbmc_10x_v3)
+pbmc_10x_v3 <- Seurat::ScaleData(pbmc_10x_v3)
 ```
 
 The scaled z-scored residuals of these models are stored in the `scale.data` slot, and are used for downstream dimension reduction and clustering tasks.
@@ -300,21 +299,20 @@ We perform PCA on the **scaled data**. By default, HVGs in `pbmc_10x_v3@var.gene
 We run PCA on top 3,000 most variable genes, and the total number of PCs to compute and store is 50 by default:
 
 ```{r pca}
-pbmc_10x_v3 <- RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))
+pbmc_10x_v3 <- Seurat::RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))
 ```
 
 The PCA result is stored in `pbmc_10x_v3@reduction`. The output information prints us 30 (by default) genes that are positively, or negatively correlated with the top 5 (by default) principal components.
 
-<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">  
 
 More on PCA non-determinism
-
 </button>
 
 ::: {#pca .collapse}
 The default parameters instill for PCA to be approximated by using truncated singular value decomposition and fixed with a random seed preset to 42. Under the hood, it is using the `irlba` package for truncated singular value decomposition (SVD) that uses an iterative algorithm that starts with a *random* initial vector to approximate the largest singular vectors.
 
-:::
+:::  
 
 
 **Important note:** How many genes to choose for PCA and how many PCs to use for downstream analysis is a complex and important issue that is out of the scope of today’s workshop.
