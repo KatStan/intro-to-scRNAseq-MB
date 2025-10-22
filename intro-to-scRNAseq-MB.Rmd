@@ -292,7 +292,7 @@ pbmc_10x_v3 <- Seurat::ScaleData(pbmc_10x_v3)
 
 The scaled z-scored residuals of these models are stored in the `scale.data` slot, and are used for downstream dimension reduction and clustering tasks.
 
-#### Principal component analysis (PCA)
+#### Dimension Reduction - Principal component analysis (PCA)
 
 We perform PCA on the **scaled data**. By default, HVGs in `pbmc_10x_v3@var.genes` are used as input, but they can be defined by specifying the argument `pc.genes`.
 
