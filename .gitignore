@@ -51,5 +51,6 @@ rsconnect/
 # additional materials for personal learning
 materials/
 
-# .html from the R markdown, to be rendered and deployed through github workflow instead
+# files from the R markdown; to be rendered and deployed through github workflow instead
 *.html
+*_files/

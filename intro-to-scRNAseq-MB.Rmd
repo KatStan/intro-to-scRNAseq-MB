@@ -33,13 +33,17 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 if (!requireNamespace("SeuratData", quietly = TRUE)) {
   remotes::install_github("satijalab/seurat-data", quiet = TRUE)
 }
+if(!requireNamespace("", quietly = TRUE)) {
+  install.packages("patchwork")
+}
 ```
 
 ```{r load_libraries, include=FALSE, cache=TRUE}
 
-library(Seurat)
+#library(Seurat)
 options(Seurat.object.assay.version = "v5")
-library(SeuratData)
+#library(SeuratData)
+library(patchwork)
 
 ```
 
@@ -318,3 +322,40 @@ The default parameters instill for PCA to be approximated by using truncated sin
 **Important note:** How many genes to choose for PCA and how many PCs to use for downstream analysis is a complex and important issue that is out of the scope of today’s workshop.
 
 But we highly recommend you to read this [document](https://learn.gencore.bio.nyu.edu/single-cell-rnaseq/seurat-part-3-data-normalization/) before analyzing your own scRNA-seq data, where the authors show how to use some visualization methods to guide your choice.
+
+#### Visualisation - 2D UMAP
+Uniform manifold approximation and project (UMAP) is a tool for visualising higher dimensional data. It takes PCs as input. Here we use the top 30 PCs:
+```{r run_umap, message=FALSE}
+pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims=1:30)
+```
+
+We draw the UMAP plot with the `Dimplot()` function by specifying the argument reduction = 'umap'. We can colour points (cells) by using the metadata information (pbmc_10x_v3@meta.data) by specifying the argument `group.by`:
+```{r plot_umap}
+Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", label = TRUE, group.by = 'Method')
+```
+
+The `Method` metadata refers to the sequencing platform used, and as we are currently analysing the data from only one sequencing platform, we are expecting to see all the cells labelled with the same colour.
+
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#num_pcs_umap">  
+
+More on #PCs influencing UMAP
+</button>
+::: {#num_pcs_umap .collapse}
+```{r umaps, message=FALSE}
+pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:2)
+p1 <- Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", group.by = 'Method') + Seurat::NoLegend()
+pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:10)
+p2 <- Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", group.by = 'Method') + Seurat::NoLegend()
+pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:30)
+p3 <- Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", group.by = 'Method') + Seurat::NoLegend()
+pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:50)
+p4 <- Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", group.by = 'Method') + Seurat::NoLegend()
+# combining plots by patchwork system
+
+p1 + p2 + p3 + p4
+```
+
+Two PCs aren't enough to see any structure and this would be because the first 2 PCs don't capture enough variability in the data. The first 30 and 50 seem to give quite similar UMAP visualisations.  
+To get the legend font to be smaller in size, I searched the documentation for `DimPlot` and didn't find a specific parameter for it, however, there was `...`, which means you can send through parameters that would be used by the functions `DimPlot` employs. Looking at the [implementation](https://github.com/satijalab/seurat/blob/main/R/visualization.R) of `DimPlot`, I saw there is `NoLegend()`, so I instead decided to remove the legend for each individual plot using `+NoLegend()`
+:::
+
