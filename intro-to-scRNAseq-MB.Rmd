@@ -341,7 +341,7 @@ The `Method` metadata refers to the sequencing platform used, and as we are curr
 More on #PCs influencing UMAP
 </button>
 ::: {#num_pcs_umap .collapse}
-```{r umaps, message=FALSE}
+```{r umaps, message=FALSE, cache=TRUE}
 pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:2)
 p1 <- Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", group.by = 'Method') + Seurat::NoLegend()
 pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:10)
@@ -359,3 +359,18 @@ Two PCs aren't enough to see any structure and this would be because the first 2
 To get the legend font to be smaller in size, I searched the documentation for `DimPlot` and didn't find a specific parameter for it, however, there was `...`, which means you can send through parameters that would be used by the functions `DimPlot` employs. Looking at the [implementation](https://github.com/satijalab/seurat/blob/main/R/visualization.R) of `DimPlot`, I saw there is `NoLegend()`, so I instead decided to remove the legend for each individual plot using `+NoLegend()`
 :::
 
+#### Clustering
+By default, Seurat uses the Louvain algorithm. Another popular one is Leiden algorithm.  
+The Louvain algorithm requires a neighbor graph as input. Therefore, we first run the `FindNeighbors()` function first. It is based on PCs, so here we use the 30 top PCs (previously, we conducted PCA with the default number of PCs being 50). We then run the `FindClusters()` function for clustering. The argument `Algorithm=1` means we are using the Louvain algorithm for clustering:
+
+```{r clustering, cache=TRUE}
+pbmc_10x_v3 <- Seurat::FindNeighbors(pbmc_10x_v3, dims = 1:30)
+pbmc_10x_v3 <- Seurat::FindClusters(object = pbmc_10x_v3, resolution = 0.3, algorithm=1)
+```
+
+The key tunning parameter here is resolution, which determines how many clusters we get. The number of clusters to have depends on biology. The higher the number, the more clusters. 
+
+We can use UMAP to visualize the clustering results. The argument `group.by='seurat_clusters'` is used to colour the cells according to the clustering results.
+```{r plot_clusters}
+Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", label = TRUE, group.by = 'seurat_clusters')
+```
