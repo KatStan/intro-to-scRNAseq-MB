@@ -190,7 +190,7 @@ Seurat v5: full process automatic data pre-processing: QC - Normalisation - feat
 This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that **passed quality control** are included in the `pbmcsca` dataset.
 
 ```{r acquire_data, cache=TRUE, message=FALSE, warning=FALSE}
-InstallData("pbmcsca")
+SeuratData::InstallData("pbmcsca")
 data("pbmcsca")
 # needs to update Seurat object to new structure (v5) for storing data/calculations
 pbmcsca <- UpdateSeuratObject(pbmcsca)
