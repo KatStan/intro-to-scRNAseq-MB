@@ -22,7 +22,7 @@ htmltools::HTML("
 Seurat is an R package for analysing single-cell RNA-seq data. More info about the package can be found [here](https://satijalab.org/seurat/).\
 The public dataset we will be working with today is part of SeuratData, which is a package that distributes datasets in Seurat-object form.
 
-```{r seurat_setup, eval=FALSE, include=FALSE, cache=TRUE}
+```{r seurat_setup, include=FALSE}
 if (!requireNamespace("Seurat", quietly = TRUE)) {
   install.packages('Seurat')
 }
@@ -33,16 +33,16 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 if (!requireNamespace("SeuratData", quietly = TRUE)) {
   remotes::install_github("satijalab/seurat-data", quiet = TRUE)
 }
-if(!requireNamespace("", quietly = TRUE)) {
+if(!requireNamespace("patchwork", quietly = TRUE)) {
   install.packages("patchwork")
 }
 ```
 
-```{r load_libraries, include=FALSE, cache=TRUE}
+```{r load_libraries, include=FALSE}
 
-#library(Seurat)
+library(Seurat)
 options(Seurat.object.assay.version = "v5")
-#library(SeuratData)
+library(SeuratData)
 library(patchwork)
 
 ```
@@ -189,8 +189,8 @@ Seurat v5: full process automatic data pre-processing: QC - Normalisation - feat
 
 This public dataset includes single-cell RNA-seq data of human peripheral blood mononuclear cells (PBMCs) using multiple sequencing platforms. Only data that **passed quality control** are included in the `pbmcsca` dataset.
 
-```{r acquire_data, cache=TRUE, message=FALSE, warning=FALSE}
-SeuratData::InstallData("pbmcsca")
+```{r acquire_data, message=FALSE, warning=FALSE}
+InstallData("pbmcsca")
 data("pbmcsca")
 # needs to update Seurat object to new structure (v5) for storing data/calculations
 pbmcsca <- UpdateSeuratObject(pbmcsca)
@@ -341,7 +341,7 @@ The `Method` metadata refers to the sequencing platform used, and as we are curr
 More on #PCs influencing UMAP
 </button>
 ::: {#num_pcs_umap .collapse}
-```{r umaps, message=FALSE, cache=TRUE}
+```{r umaps, message=FALSE}
 pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:2)
 p1 <- Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", group.by = 'Method') + Seurat::NoLegend()
 pbmc_10x_v3 <- Seurat::RunUMAP(pbmc_10x_v3, dims = 1:10)
@@ -363,7 +363,7 @@ To get the legend font to be smaller in size, I searched the documentation for `
 By default, Seurat uses the Louvain algorithm. Another popular one is Leiden algorithm.  
 The Louvain algorithm requires a neighbor graph as input. Therefore, we first run the `FindNeighbors()` function first. It is based on PCs, so here we use the 30 top PCs (previously, we conducted PCA with the default number of PCs being 50). We then run the `FindClusters()` function for clustering. The argument `Algorithm=1` means we are using the Louvain algorithm for clustering:
 
-```{r clustering, cache=TRUE}
+```{r clustering}
 pbmc_10x_v3 <- Seurat::FindNeighbors(pbmc_10x_v3, dims = 1:30)
 pbmc_10x_v3 <- Seurat::FindClusters(object = pbmc_10x_v3, resolution = 0.3, algorithm=1)
 ```
