@@ -374,3 +374,33 @@ We can use UMAP to visualize the clustering results. The argument `group.by='seu
 ```{r plot_clusters}
 Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", label = TRUE, group.by = 'seurat_clusters')
 ```
+
+#### Cell Type Annotation
+Above we see that cluster 3 is visually its own cluster. To see what characterises that cluster, we can look at its marker genes. Marker genes would be the genes that are differentially expressed in ONLY that cluster, aka we compare that cluster to all the other clusters **together**. 
+```{r markergenes}
+pbmc_10x_v3.markers <- FindAllMarkers(pbmc_10x_v3, min.pct = .25, logfc.threshold = .25)
+
+cluster3.markers <- pbmc_10x_v3.markers[which(pbmc_10x_v3.markers$cluster==3),]
+cluster3.markers[1:5,]
+```
+We then search these marker genes in this [database website](https://panglaodb.se/search.html). If there are genes with a dash in their name, you need to remove the dash before searching.
+
+![](images/panglaodb_res_plot.png)
+
+Based on the result provided by the database, it looks like cluster 3 might be a cluster of B cells. This is a rare situation in which we can check whether this is the case by checking the cell-type ground truth information pre-saved in the `pbmc_10x_v3` object, and plotting this as UMAP:
+```{r ground_truth}
+DimPlot(pbmc_10x_v3, reduction = "umap", label = TRUE, group.by = 'CellType')
+```
+
+And so we see that cluster 3 (in our previous UMAP) is labelled as B cells, as we got from the database using our marker genes.
+
+##### Annotating datasets
+Very often we might have a few genes of interest, say CD14, a marker of CD14+ monocytes. Then we can look for clusters where CD14 is up-regulated. This can be done by:
+```{r cd14}
+Idents(object = pbmc_10x_v3) <- "seurat_clusters"
+VlnPlot(pbmc_10x_v3, features = 'CD14')
+```
+
+So, cluster 4 is high likely to be annotated as CD14+ monocytes.
+
+Typically, cell-type information is unknown in single cell data, as this is what we are trying to find out! But publicly available datasets may have been previously annotated using the technique higlighted above, or using other reference datasets.
