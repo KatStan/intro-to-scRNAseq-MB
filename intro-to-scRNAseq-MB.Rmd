@@ -370,7 +370,7 @@ pbmc_10x_v3 <- Seurat::FindClusters(object = pbmc_10x_v3, resolution = 0.3, algo
 
 The key tunning parameter here is resolution, which determines how many clusters we get. The number of clusters to have depends on biology. The higher the number, the more clusters. 
 
-We can use UMAP to visualize the clustering results. The argument `group.by='seurat_clusters'` is used to colour the cells according to the clustering results.
+We can use UMAP to visualise the clustering results. The argument `group.by='seurat_clusters'` is used to colour the cells according to the clustering results.
 ```{r plot_clusters}
 Seurat::DimPlot(pbmc_10x_v3, reduction = "umap", label = TRUE, group.by = 'seurat_clusters')
 ```
@@ -404,3 +404,97 @@ VlnPlot(pbmc_10x_v3, features = 'CD14')
 So, cluster 4 is high likely to be annotated as CD14+ monocytes.
 
 Typically, cell-type information is unknown in single cell data, as this is what we are trying to find out! But publicly available datasets may have been previously annotated using the technique highlighted above, or using other reference datasets.
+
+#### Automatic Cell Type Annotation for `pbmc_10x_v2`
+Suppose we have annotated `pbmc_10x_v3`. We can then use it as a reference to annotate a new PBMC dataset (like `pbmc_10x_v2`). This can be done computationally, so that we do not need to go through the process of clustering, finding differentially expressed genes and looking up gene names.
+
+**Remember**: `pbmc_10x_v2` and `pbmc_10x_v3` include different cells from different patients and sequenced using different platforms.
+
+##### Pre-processing and Visualization for `pbmc_10x_v2`
+
+```{r pbmcv2, message=FALSE}
+# Normalise it
+pbmc_10x_v2 <- NormalizeData(pbmc_10x_v2)
+
+# Feature Selection
+pbmc_10x_v2 <- FindVariableFeatures(pbmc_10x_v2, selection.method = "vst", nfeatures = 3000)
+
+# Scale it
+pbmc_10x_v2.all.genes <- rownames(pbmc_10x_v2)
+pbmc_10x_v2 <- ScaleData(pbmc_10x_v2, features = pbmc_10x_v2.all.genes)
+
+# Do PCA
+pbmc_10x_v2 <- RunPCA(pbmc_10x_v2, features = VariableFeatures(object = pbmc_10x_v2))
+
+# Draw UMAP
+pbmc_10x_v2 <- FindNeighbors(pbmc_10x_v2, dims = 1:30)
+pbmc_10x_v2 <- RunUMAP(pbmc_10x_v2, dims=1:30)
+DimPlot(pbmc_10x_v2, reduction = "umap", label = TRUE, group.by = 'Method')
+```
+
+##### Cell Type Annotation Using `pbmc_10x_v3` as Reference
+
+In Seurat we can learn cell type annotation results from one scRNA-seq data to provide cell type annotation for another scRNA-seq dataset.
+
+We use the `FindTransferAnchors()` function to predict which cells in two datasets are of the same cell type. Here we use `pbmc_10x_v3` as the reference data set, and `pbmc_10x_v2` is the query data.
+
+We specify that we use the top 30 PCs, then assign the cell-type of the cells in `pbmc_10x_v2` using the `TransferData()` function:  
+```{r transfer_anchors}
+anchors <- FindTransferAnchors(reference = pbmc_10x_v3, query = pbmc_10x_v2, dims = 1:30)
+
+predictions <- TransferData(anchorset = anchors, refdata = pbmc_10x_v3$CellType, dims = 1:30)
+```
+
+Seurat will provide a table with the most likely cell type and the probability of each cell type based on the existing cell types in the reference. This means if there is a cell type in `pbmc_10x_v2` that doesn't exist in the reference, we won't be able to correctly assign those cells, resulting in a misleading classification. 
+We assign the most likely cell type to the `pbmc_10x_v2` object, and then use UMAP to visualise this annotation:
+
+```{r celltype_annotation_using_pbmcv3}
+
+pbmc_10x_v2@meta.data$CellType_Prediction <- predictions$predicted.id 
+
+cell_type_pred_umap <- DimPlot(pbmc_10x_v2, reduction = "umap", label = FALSE, group.by = 'CellType_Prediction')
+cell_type_pred_umap
+```
+
+
+##### Cell Type Annotation Using Azimuth
+[Azimuth](https://azimuth.hubmapconsortium.org/) is a web application that uses an annotated reference dataset to automate the processing, analysis, and interpretation of a new single-cell RNA-seq or ATAC-seq experiment.
+
+The input of Azimuth can be a Seurat object. In order to reduce the size of the uploaded file, we retain only the useful information for cell type annotation with the following command lines:
+```{r azimuth_obj_creation}
+DefaultAssay(pbmc_10x_v2) <- "RNA"
+pbmc_10x_v2_simple <- DietSeurat(object = pbmc_10x_v2, assays = "RNA")
+saveRDS(pbmc_10x_v2_simple, 'output/pbmc_10x_v2.Rds')
+```
+
+An Rds file called `pbmc_10x_v2.Rds` is saved in your working directory. You can check where is your working directory by using the `getwd()` function.
+
+How to use Azimuth for cell type annotation:
+
+- Find ‘References for scRNA-seq Queries’ -> Then find ‘Human - PBMC’ -> click ‘Go to App’
+- Click ‘Browse’ -> find ‘pbmc_10x_v2.Rds’ at your working directory -> Click ‘Open’
+- Wait for the Rds file to upload to the website
+- Click ‘Map cells to reference’
+- Click ‘Download Results’
+- Find ‘Predicted cell types and scores (TSV)’
+- Click ‘Download’ to get the cell type annotation result stored in azimuth_pred.tsv
+- Copy the tsv file (azimuth_pred.tsv) to your R working directory
+
+The tsv file has the same data structure of Seurat annotation result (predictions). We read the tsv file, then add the annotation result to the pbmc_10x_v2 object with the `AddMetaData()` function and we use UMAP to visualise the cell type annotation result from Azimuth:
+```{r azimuth_preds}
+azimuth_predictions <- read.delim('azimuth_pred.tsv', row.names = 1)
+pbmc_10x_v2 <- AddMetaData(object = pbmc_10x_v2, metadata = azimuth_predictions)
+cell_type_azimuth_umap <- DimPlot(pbmc_10x_v2, reduction = "umap", label = FALSE, group.by = 'predicted.celltype.l2')
+cell_type_azimuth_umap
+```
+
+##### Comparing annotations
+Here is the cell type annotation results provided by the data provider:
+```{r ground_truth_plot}
+cell_type_truth_umap <- DimPlot(pbmc_10x_v2, reduction = "umap", label = FALSE, group.by = 'CellType')
+cell_type_truth_umap
+```
+
+Assuming the ground truth of the cell type annotation is from the provider, we can see that the cell type annotation provided from Azimuth is better than from Seurat, which would be due to Azimuth using a larger reference dataset, enabling Azimuth to learn the characteristics of more cell types. 
+
+
