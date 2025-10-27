@@ -464,7 +464,7 @@ The input of Azimuth can be a Seurat object. In order to reduce the size of the 
 ```{r azimuth_obj_creation}
 DefaultAssay(pbmc_10x_v2) <- "RNA"
 pbmc_10x_v2_simple <- DietSeurat(object = pbmc_10x_v2, assays = "RNA")
-saveRDS(pbmc_10x_v2_simple, 'output/pbmc_10x_v2.Rds')
+#saveRDS(pbmc_10x_v2_simple, 'output/pbmc_10x_v2.Rds')
 ```
 
 An Rds file called `pbmc_10x_v2.Rds` is saved in your working directory. You can check where is your working directory by using the `getwd()` function.
