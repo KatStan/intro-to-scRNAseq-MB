@@ -54,3 +54,4 @@ materials/
 # files from the R markdown; to be rendered and deployed through github workflow instead
 *.html
 *_files/
+output/
