@@ -497,4 +497,73 @@ cell_type_truth_umap
 
 Assuming the ground truth of the cell type annotation is from the provider, we can see that the cell type annotation provided from Azimuth is better than from Seurat, which would be due to Azimuth using a larger reference dataset, enabling Azimuth to learn the characteristics of more cell types. 
 
+#### Integration of two data sets
+We have combined the two data sets without any processing in the Seurat object `pbmc_combo` In this section we will focus on combining these data sets (note: the process would be similar if you are combining different patients).
 
+Let's use our previous workflow to analyse this data that came from combining two independent datasets.
+
+```{r analyse_combo_direct, message=FALSE}
+# Normalise it
+pbmc_combo <- NormalizeData(pbmc_combo)
+
+# Feature Selection
+pbmc_combo <- FindVariableFeatures(pbmc_combo,
+                                   selection.method = "vst", nfeatures = 3000)
+
+# Scale it
+pbmc_combo.all.genes <- rownames(pbmc_combo)
+pbmc_combo <- ScaleData(pbmc_combo, features = pbmc_combo.all.genes)
+
+# Do PCA
+pbmc_combo <- RunPCA(pbmc_combo, features = VariableFeatures(object = pbmc_combo))
+
+# Draw UMAP
+pbmc_combo <- FindNeighbors(pbmc_combo, dims = 1:30)
+pbmc_combo <- RunUMAP(pbmc_combo, dims=1:30)
+DimPlot(pbmc_combo, reduction = "umap", label = TRUE, group.by = 'Method')
+```
+
+This is where we can see that we have clusters form with solely cells from a single patient. Although we can have cell types in one patient that doesn't appear in the other patient, we have too many clusters here that follow that pattern of clustering based on sequencing platform.
+This hinders our ability to detect valuable biological signal. We call differences caused by non-biological factors such as sequencing platforms or data sources **batch effects**. We need to first use some statistical methods to remove batch effects prior to downstream analysis.
+
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#batch">  
+
+Note on batch effect
+</button>
+
+::: {#batch .collapse}
+If we weren't sure whether this is batch effect, we could continue a bit with our analysis and do find clusters and see whether e.g. all cells expressing CD14 are in one cluster, as CD14 is a marker of CD14+ monocytes. If they are not in one cluster, they are not clustering based on cell types.
+
+```{r further_est_batch_eff}
+pbmc_combo <- FindClusters(object = pbmc_combo, resolution = 0.3, algorithm=1)
+DimPlot(pbmc_combo, reduction = "umap", label = FALSE)
+VlnPlot(pbmc_combo, features = 'CD14')
+```
+
+:::  
+
+##### Removing batch effects
+In Seurat, we use the `FindIntegrationAnchors()` function to identify cells with similar biological information between two data sets. The difference between cells in two data sets with similar biological information is considered as batch effect. We then use the `IntegrateData()` function to remove batch effects and integrate the two data sets:
+```{r batch_eff_removal, message=FALSE}
+anchor_combo <- FindIntegrationAnchors(object.list = list(pbmc_10x_v2, pbmc_10x_v3), dims = 1:30)
+
+pbmc_combo <- IntegrateData(anchorset = anchor_combo, dims = 1:30)
+
+# Scaling
+pbmc_combo.all.genes <- rownames(pbmc_combo)
+pbmc_combo <- ScaleData(pbmc_combo, features = pbmc_combo.all.genes)
+
+# PCA
+pbmc_combo <- RunPCA(pbmc_combo, features = VariableFeatures(object = pbmc_combo))
+
+# UMAP
+pbmc_combo <- FindNeighbors(pbmc_combo, dims = 1:30)
+pbmc_combo <- RunUMAP(pbmc_combo, dims=1:30)
+DimPlot(pbmc_combo, reduction = "umap", label = FALSE, group.by = 'Method')
+```
+
+These clusters look much better in terms of not having clear distinct separation based on the sequencing platform.
+
+```{r comb_groundtruth}
+DimPlot(pbmc_combo, reduction = "umap", label = FALSE, group.by = 'CellType')
+```
