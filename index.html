@@ -897,18 +897,84 @@ PCs to compute and store is 50 by default:</p>
 ##     CAMK4, LDHB, TOB1, TRABD2A, HES4, CSF1R, CKB, JUNB, TMEM123, ZFP36L2 
 ##     NELL2, RNASET2, CD28, BCL11B, TNFRSF25, CD27, CTSL, CD40LG, ZNF703, AQP3</code></pre>
 <p>The PCA result is stored in <code>pbmc_10x_v3@reduction</code>. The
-output information prints us 30 (by default) genes that are positively,
-or negatively correlated with the top 5 (by default) principal
-components.</p>
+output information <strong>prints</strong> us 30 (by default) genes that
+are positively, or negatively correlated with the top 5 (by default)
+principal components.</p>
 <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">
-More on PCA non-determinism
+More on PCA
 </button>
 <div id="pca" class="collapse">
+<p>PCA is a dimension reduction technique. It captures the most
+variability in the data, achieved by using an orthogonal linear
+transformation (<span class="math inline">\(\sum_i{ax_i}\)</span>) of
+the data. Let’s say each data point is in p dimensions (e.g. p genes
+describe a person). The idea is that you have made a new p-dimension
+(new p axes), projected the data onto the new dimensions by a linear
+transformation of the data and the <em>earliest</em> dimensions 1) hold
+the most data variability (info) whilst maintaining 2) orthogonality to
+all previously defined axes (all the p axes are orthogonal). These new
+axes are called principal components (PCs) that capture the max variance
+in data while keeping orthogonality. Each data point (e.g. a person)
+then gets new coordinates, as they are projected onto the new coordinate
+system.<br />
+PCA is defined as the linear transformation shown below, where “x” are
+coordinates of original data, “c” are the projected coordinates, “a” are
+the loadings and “p” is the number of dimensions describing a
+point.<br />
+PCA is fully reversible, as it would equate to solving a system of
+linear equations seen below where “c” and “a” are the known, and “x” is
+the unknown.</p>
+<p><span class="math display">\[
+  x_1, x_2, ..., x_p \rightarrow data \\
+  c_1, c_2, ..., c_p \rightarrow new~coordinates \\
+  a_{11}, a_{12} ~ ... ~ a_{1p} ~ ... ~ a_{pp} \rightarrow loadings\\
+  (x_1, x_2, ..., x_p) \rightarrow (c_1, c_2, ..., c_p) \\
+  c_1 = a_{11}x_1+a_{12}x_2 +...+ a_{1p}x_p \\
+  c_2 = a_{21}x_1+a_{22}x_2 +...+ a_{2p}x_p \\
+  ...\\
+  c_p = a_{p1}x_1+a_{p2}x_2 +...+ a_{pp}x_p
+\]</span> Instead of looking at the original genes, we are looking at
+new/derived features aka principal components that came from
+transforming the original data.<br />
+So the first PC is a linear combination of features that describes the
+most variability in the data.<br />
+The <span class="math inline">\(k^{th}\)</span> PC is a linear
+combination of features that is uncorrelated to all the previous k-1 PCs
+and describes the most variability unaccounted to all the previous k-1
+PCs.<br />
+We’ve reduced the dimensions by retaining the first k (k &lt; p) PCs
+instead of all p dimensions as we started with.</p>
+<p>If you were to perform PCA mathematically, you would do the
+following:</p>
+<pre class="r"><code>S &lt;- cov(x) # x is the matrix of centered data
+eigen(S)
+## eigen() decomposition
+## $values
+## [1] 6.858209 1.796837
+##
+## $vectors
+##      [,1]        [,2]
+## [1,] -0.8044078 0.5940776
+## [2,] -0.5940776 -0.8044078</code></pre>
+<p>The largest eigenvalue is <span class="math inline">\(\lambda_1\)</span> = 6.858, and the corresponding
+eigenvector (= unit vector) is w1 = (-0.804, -0.594)^T<br />
+<span class="math inline">\(\lambda_i\)</span> is the variance of the
+<span class="math inline">\(i^{th}\)</span> PC. The total variance of
+the data is the sum of all . The proportion of variance explained by the
+i^{th} PC is <span class="math inline">\(\frac{\lambda_i}{\sum^p_{j=1}{\lambda_j}}\)</span>.<br />
+The loadings can be found as:</p>
+<pre class="r"><code>eigenvalues_sqrt &lt;- sqrt(eigen_result$values)
+loadings &lt;- eigen_result$vectors %*% diag(eigenvalues_sqrt)</code></pre>
+</div>
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#svd">
+More on PCA non-determinism
+</button>
+<div id="svd" class="collapse">
 <p>The default parameters instill for PCA to be approximated by using
-truncated singular value decomposition and fixed with a random seed
-preset to 42. Under the hood, it is using the <code>irlba</code> package
-for truncated singular value decomposition (SVD) that uses an iterative
-algorithm that starts with a <em>random</em> initial vector to
+truncated singular value decomposition (SVD) and fixed with a random
+seed preset to 42. Under the hood, it is using the <code>irlba</code>
+package for truncated singular value decomposition (SVD) that uses an
+iterative algorithm that starts with a <em>random</em> initial vector to
 approximate the largest singular vectors.</p>
 </div>
 <p><strong>Important note:</strong> How many genes to choose for PCA and
