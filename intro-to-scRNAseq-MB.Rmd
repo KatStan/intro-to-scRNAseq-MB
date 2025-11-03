@@ -306,15 +306,63 @@ We run PCA on top 3,000 most variable genes, and the total number of PCs to comp
 pbmc_10x_v3 <- Seurat::RunPCA(pbmc_10x_v3, features = VariableFeatures(object = pbmc_10x_v3))
 ```
 
-The PCA result is stored in `pbmc_10x_v3@reduction`. The output information prints us 30 (by default) genes that are positively, or negatively correlated with the top 5 (by default) principal components.
+The PCA result is stored in `pbmc_10x_v3@reduction`. The output information **prints** us 30 (by default) genes that are positively, or negatively correlated with the top 5 (by default) principal components.
 
 <button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#pca">  
+
+More on PCA
+</button>
+
+::: {#pca .collapse}
+PCA is a dimension reduction technique. It captures the most variability in the data, achieved by using an orthogonal linear transformation ($\sum_i{ax_i}$) of the data. Let's say each data point is in p dimensions (e.g. p genes describe a person). The idea is that you have made a new p-dimension (new p axes), projected the data onto the new dimensions by a linear transformation of the data and the *earliest* dimensions 1) hold the most data variability (info) whilst maintaining 2) orthogonality to all previously defined axes (all the p axes are orthogonal). These new axes are called principal components (PCs) that capture the max variance in data while keeping orthogonality. Each data point (e.g. a person) then gets new coordinates, as they are projected onto the new coordinate system.  
+PCA is defined as the linear transformation shown below, where "x" are coordinates of original data, "c" are the projected coordinates, "a" are the loadings and "p" is the number of dimensions describing a point.  
+PCA is fully reversible, as it would equate to solving a system of linear equations seen below where "c" and "a" are the known, and "x" is the unknown.  
+
+$$ 
+  x_1, x_2, ..., x_p \rightarrow data \\
+  c_1, c_2, ..., c_p \rightarrow new~coordinates \\
+  a_{11}, a_{12} ~ ... ~ a_{1p} ~ ... ~ a_{pp} \rightarrow loadings\\
+  (x_1, x_2, ..., x_p) \rightarrow (c_1, c_2, ..., c_p) \\
+  c_1 = a_{11}x_1+a_{12}x_2 +...+ a_{1p}x_p \\
+  c_2 = a_{21}x_1+a_{22}x_2 +...+ a_{2p}x_p \\
+  ...\\
+  c_p = a_{p1}x_1+a_{p2}x_2 +...+ a_{pp}x_p 
+$$
+Instead of looking at the original genes, we are looking at new/derived features aka principal components that came from transforming the original data.    
+So the first PC is a linear combination of features that describes the most variability in the data.   
+The $k^{th}$ PC is a linear combination of features that is uncorrelated to all the previous k-1 PCs and describes the most variability unaccounted to all the previous k-1 PCs.   
+We've reduced the dimensions by retaining the first k (k < p) PCs instead of all p dimensions as we started with.  
+
+If you were to perform PCA mathematically, you would do the following:  
+```{r, eval=FALSE}
+S <- cov(x) # x is the matrix of centered data
+eigen(S)
+## eigen() decomposition
+## $values
+## [1] 6.858209 1.796837
+##
+## $vectors
+##      [,1]        [,2]
+## [1,] -0.8044078 0.5940776
+## [2,] -0.5940776 -0.8044078
+```
+The largest eigenvalue is $\lambda_1$ = 6.858, and the corresponding
+eigenvector (= unit vector) is w1 = (-0.804, -0.594)^T  
+$\lambda_i$ is the variance of the $i^{th}$ PC. The total variance of the data is the sum of all \lambda. The proportion of variance explained by the i^{th} PC is $\frac{\lambda_i}{\sum^p_{j=1}{\lambda_j}}$.   
+The loadings can be found as:  
+```{r eval=FALSE}
+eigenvalues_sqrt <- sqrt(eigen_result$values)
+loadings <- eigen_result$vectors %*% diag(eigenvalues_sqrt)
+```
+:::
+
+<button class="btn btn-secondary btn-xs" type="button" data-toggle="collapse" data-target="#svd">  
 
 More on PCA non-determinism
 </button>
 
-::: {#pca .collapse}
-The default parameters instill for PCA to be approximated by using truncated singular value decomposition and fixed with a random seed preset to 42. Under the hood, it is using the `irlba` package for truncated singular value decomposition (SVD) that uses an iterative algorithm that starts with a *random* initial vector to approximate the largest singular vectors.
+::: {#svd .collapse}
+The default parameters instill for PCA to be approximated by using truncated singular value decomposition (SVD) and fixed with a random seed preset to 42. Under the hood, it is using the `irlba` package for truncated singular value decomposition (SVD) that uses an iterative algorithm that starts with a *random* initial vector to approximate the largest singular vectors.
 
 :::  
 
